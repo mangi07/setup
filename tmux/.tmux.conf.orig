@@ -1,10 +1,14 @@
-# remap prefix from 'C-b' to 'C-a'
+# remap prefix, add secondary prefix
 unbind C-b
 set-option -g prefix C-a
 bind-key C-a send-prefix
+set-option -g prefix2 M-a
 
 # Enable mouse mode (tmux 2.1 and above)
 set -g mouse on
+
+# Increase time to see pane numbering
+set -g display-panes-time 10000
 
 
 ######################
