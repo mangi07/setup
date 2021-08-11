@@ -23,6 +23,8 @@ sudo apt install software-properties-common
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt install python3.9
 sudo apt install python3-pip
+sudo apt install python3.9-venv
+sudo update-alternatives --install /usr/bin/python3 python3 /urs/bin/python3.9 # to make python3.9 the default executable of 'python3'
 pip3 install --upgrade pynvim
 
 
@@ -43,4 +45,5 @@ sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.
 sudo chown -R $(whoami) /usr/lib/node_modules/
 npm install -g neovim
 npm install -g pyright
-
+npm install -g typescript typescript-language-server
+npm i -g vscode-langservers-extracted # html, css, and json from vscode (vscode-html-language-server, vscode-css-language-server and vscode-json-language-server for the $PATH)
