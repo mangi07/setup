@@ -24,7 +24,7 @@ sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt install python3.9
 sudo apt install python3-pip
 sudo apt install python3.9-venv
-sudo update-alternatives --install /usr/bin/python3 python3 /urs/bin/python3.9 # to make python3.9 the default executable of 'python3'
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1 # to make python3.9 the default executable of 'python3'
 pip3 install --upgrade pynvim
 
 
