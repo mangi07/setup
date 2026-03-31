@@ -1,5 +1,5 @@
 " ##################################
-" colorscheme
+" COLORSCHEME:
 " using ~/.vim/plugin/ScrollColors ...
 nnoremap <F3> :NEXTCOLOR<cr>
 nnoremap <F2> :PREVCOLOR<cr>
@@ -7,6 +7,9 @@ nnoremap <F2> :PREVCOLOR<cr>
 "colorscheme Tomorrow-Night-Eighties
 colorscheme molokai
 
+
+" ##################################
+" GENERAL STUFF:
 set nu
 set relativenumber
 set foldmethod=manual
@@ -16,7 +19,7 @@ autocmd Filetype cpp setlocal expandtab tabstop=2 shiftwidth=2
 autocmd Filetype html setlocal expandtab tabstop=2 shiftwidth=2
 autocmd Filetype vue setlocal expandtab tabstop=2 shiftwidth=2
 autocmd Filetype javascript setlocal tabstop=2 shiftwidth=2 noexpandtab
-inoremap ii <Esc>
+inoremap jf <Esc>
 let mapleader=","
 nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
@@ -35,13 +38,37 @@ nnoremap > <C-W>3>
 nnoremap <leader>wu <C-W>3+
 nnoremap <leader>wd <C-W>3-
 
-set nocompatible	"REQUIRED FOR VUNDLE
-syntax enable
+"set nocompatible	"REQUIRED FOR VUNDLE
+"syntax enable
 "filetype plugin on
-filetype off		"REQUIRED FOR VUNDLE
+"filetype off		"REQUIRED FOR VUNDLE
+
 
 " ###############################################
 " FILE SEARCH
+nnoremap <leader>ee :NERDTreeToggle<Enter>
+"function! NERDTreeHighlightCurBuf()
+"    let l:curBuf = bufname("%")
+"    autocmd WinEnter * call nerdtree#highlightCurrent(l:curBuf)
+"endfunction
+"autocmd VimEnter * call NERDTreeHighlightCurBuf()
+
+" FZF file search
+"nnoremap <leader>f :FZF<Enter>
+function! FzyCommand(choice_command, vim_command)
+  try
+    let output = system(a:choice_command . " | fzy ")
+  catch /Vim:Interrupt/
+    " Swallow errors from ^C, allow redraw! below
+  endtry
+  redraw!
+  if v:shell_error == 0 && !empty(output)
+    exec a:vim_command . ' ' . output
+  endif
+endfunction
+nnoremap <leader>f :call FzyCommand("find . -type f", ":e")<cr>
+"nnoremap <leader>v :call FzyCommand("find . -type f", ":vs")<cr>
+"nnoremap <leader>s :call FzyCommand("find . -type f", ":sp")<cr>
 " Search down into subfolders using tab completion
 set path+=**
 " set path=$PWD/**
@@ -56,7 +83,7 @@ set wildmenu
 
 
 " ###############################################
-" NAVIGATING WITH CTAGS
+" NAVIGATING WITH CTAGS:
 command! MakeTags !ctags -R .
 set tags=tags
 " - Use ^] to jump to tag under cursor
@@ -66,7 +93,7 @@ set tags=tags
 
 
 " ###############################################
-" AUTOCOMPLETE
+" AUTOCOMPLETE:
 " The good stuff is documented in |ins-completion|
 
 " HIGHLIGHTS:
@@ -81,7 +108,7 @@ set tags=tags
 
 
 " ###############################################
-" AUTO UPDATE VIEW OF FILES
+" AUTO UPDATE VIEW OF FILES:
 "
 " HOW IT WORKS:
 " This updates the view of files in a vim instance
@@ -128,14 +155,51 @@ let g:netrw_list_hide.=',\(^\|\s\s\)\zs\.\S\+'
 
 
 " ###############################################
-" PLUGINS
-if filereadable(expand("~/.vim/plugins.vim"))
-  source ~/.vim/plugins.vim
-endif
+" PLUGINS:
+call plug#begin('~/.vim/plugged')
+
+" Make sure you use single quotes
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+Plug 'morhetz/gruvbox'
+Plug 'davidhalter/jedi-vim'
+Plug 'preservim/nerdtree'
+Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
+Plug 'szw/vim-maximizer'
+Plug 'tpope/vim-fugitive'
+Plug 'airblade/vim-gitgutter'
+Plug 'junegunn/gv.vim' " Git commit browser
+Plug 'preservim/vim-markdown' " Formatting and viewing markdown files
+"Plug 'godlygeek/tabular' " Displaying markdown tables in a more readable way
+Plug 'dhruvasagar/vim-table-mode'
+
+" ##########################################
+" Jedi default mappings (python intellisense)
+let g:jedi#goto_command = "<leader>d"
+let g:jedi#goto_assignments_command = "<leader>ga"
+let g:jedi#goto_stubs_command = "<leader>gs"
+let g:jedi#goto_definitions_command = "gd"
+let g:jedi#documentation_command = "K"
+let g:jedi#usages_command = "<leader>gu"
+let g:jedi#completions_command = "<C-Space>"
+let g:jedi#rename_command = "<leader>r"
+let g:jedi#rename_command_keep_name = "<leader>R"
+"if filereadable(expand("~/.vim/plugins.vim"))
+"  source ~/.vim/plugins.vim
+"endif
+
+" ###############################################
+" Initialize plugin system
+call plug#end()
+
 
 " ###############################################
 " SNIPPETS:
 if filereadable(expand("~/.vim/snippets.vim"))
   source ~/.vim/snippets.vim
 endif
+
+" or...
+" SNIPPETS THE MANUAL WAY:
+" nnoremap ,div i<div></div><ESC>5hi
 
