@@ -80,6 +80,35 @@ set tags=tags
 " - Use ^n and ^p to go back and forth in the suggestion list
 
 
+" ###############################################
+" AUTO UPDATE VIEW OF FILES
+"
+" HOW IT WORKS:
+" This updates the view of files in a vim instance
+" by calling `checktime` every time increment
+" (default may be every 4 seconds if updatetime
+" is not set, but in this case, it is set to
+" update 2 seconds after it is triggered).
+"
+" MOTIVATION:
+" This configuration is intended to allow with
+" greater ease an up-to-date view of files for
+" reference while developing to separate the
+" concerns of editing files while
+" viewing/referencing relevant files.
+"
+" It allows the developer a better way to have
+" multiple views of the codebase to retain a
+" greater context for the code being changed.
+set autoread
+set updatetime=2000
+
+augroup AutoRead
+  autocmd!
+  autocmd CursorHold,CursorHoldI * checktime
+  autocmd FocusGained * checktime
+augroup END
+
 
 " ###############################################
 " FILE BROWSING:
