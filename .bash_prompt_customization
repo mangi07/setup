@@ -1,0 +1,11 @@
+# -------------------
+# Promt customization
+PATH_COLOR='\[\e[38;5;114m\]'
+BRANCH_COLOR='\[\e[38;5;107m\]'
+PROMPT_COLOR='\[\e[38;5;186m\]'
+RESET_COLOR='\[\e[0m\]'
+
+PROMPT_COMMAND='MY_GIT_BRANCH=$(__git_ps1 " (%s)")'
+PS1=" ${BRANCH_COLOR}\${MY_GIT_BRANCH}${RESET_COLOR} \
+${PATH_COLOR}\W${RESET_COLOR} \
+${PROMPT_COLOR}>${RESET_COLOR} "
