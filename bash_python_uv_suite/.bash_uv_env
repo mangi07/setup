@@ -62,7 +62,7 @@ uv-env-pick() {
 }
 
 uv-env-list() {
-    ls -ld $HOME/.venvs
+    ls -ld $HOME/.venvs/*
 }
 
 uv-env-status() {
