@@ -1,0 +1,186 @@
+# Suite of bash functions as helpers to Python uv
+
+_uv-validate-env-name() {
+    local env_name="$1"
+
+    [[ "$env_name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]
+}
+
+uv-env-set() {
+    local usage
+    usage=$'Usage: uv-env-set PROJECT_NAME\n\nSet UV_PROJECT_ENVIRONMENT to:\n  $HOME/.venvs/PROJECT_NAME\n\nOptions:\n  -h, --help     Show this help message\n      --usage    Show this help message\n\nExample:\n  uv-env-set my-project\n  uv sync\n  uv run pytest'
+
+    if [[ "$#" -eq 0 ]]; then
+        printf '%s\n' "$usage"
+        return 2
+    fi
+
+    case "$1" in
+        -h|--help|--usage)
+            printf '%s\n' "$usage"
+            return 0
+            ;;
+        -*)
+            printf 'Error: unknown option: %s\n\n%s\n' "$1" "$usage" >&2
+            return 2
+            ;;
+    esac
+
+    if [[ "$#" -ne 1 ]]; then
+        printf 'Error: expected exactly one project name.\n\n%s\n' "$usage" >&2
+        return 2
+    fi
+
+    local project_name="$1"
+
+    if ! _uv-validate-env-name "$project_name"; then
+        printf 'Error: invalid project name: %s\n\n%s\n' \
+            "$project_name" "$usage" >&2
+        return 2
+    fi
+
+    if [[ ! -f pyproject.toml ]]; then
+        printf 'Error: no pyproject.toml found in the current directory.\n\n%s\n' \
+            "$usage" >&2
+        return 1
+    fi
+
+    export UV_PROJECT_ENVIRONMENT="$HOME/.venvs/$project_name"
+    printf 'Using %s\n' "$UV_PROJECT_ENVIRONMENT"
+}
+
+uv-env-pick() {
+    local venv
+
+    venv=$(
+        find "$HOME/.venvs" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' |
+        sort |
+        fzy
+    ) || return
+
+    uv-env-set "$venv"
+}
+
+uv-env-list() {
+    ls -ld $HOME/.venvs
+}
+
+uv-env-status() {
+    if [[ -n "${UV_PROJECT_ENVIRONMENT:-}" ]]; then
+        printf 'Current uv environment:\n%s\n\n' "UV_PROJECT_ENVIRONMENT=$UV_PROJECT_ENVIRONMENT"
+    else
+        printf 'No uv environment is currently set. Use uv-env-set or uv-env-pick (fuzzy selection) to set one.\n\n'
+    fi
+
+    printf 'Virtual environment status:\n'
+    if [[ -f "$UV_PROJECT_ENVIRONMENT/bin/activate" ]]; then
+        echo "Exists (activate script present): $UV_PROJECT_ENVIRONMENT/bin/activate"
+    else
+        echo "Does not exist"
+    fi
+    if [[ -n "$VIRTUAL_ENV" ]]; then
+        echo "Activated environment: $VIRTUAL_ENV"
+    else
+        echo "Not activated."
+    fi
+    echo
+}
+
+uv-env-create() {
+    local usage
+    local env_name="$1"
+    local env_dir
+
+    usage=$'Usage: uv-create-env ENV_NAME
+
+Create and select an environment directory under:
+  $HOME/.venvs/ENV_NAME
+
+Actions performed:
+  1. Validates ENV_NAME
+  2. Creates the directory if it does not already exist
+  3. Sets UV_PROJECT_ENVIRONMENT to the directory
+
+Important:
+  This command creates only the environment directory.
+  It does NOT create a Python virtual environment.
+
+  After creating and selecting the directory, run an
+  appropriate uv command (for example: uv sync) to create
+  and populate the virtual environment.
+
+Options:
+  -h, --help    Show this help message
+
+Examples:
+  uv-env-create assetdb
+  uv-env
+  uv sync
+'
+    # initial validations and usage messages
+    if [[ $# -eq 0 ]]; then
+        printf '%s\n' "$usage"
+	return 2
+    fi
+
+    case "$1" in
+        -h|--help|--usage)
+	    printf '%s\n' "$usage"
+	    return 0
+	    ;;
+	-*)
+	    printf 'Error: unknown option: %s\n\n%s\n' "$1" "$usage" >&2
+	    return 2
+	    ;;
+    esac
+
+    if ! _uv-validate-env-name "$env_name"; then
+        printf 'Error: invalid environment name: %s\n' "$env_name" >&2
+        return 2
+    fi
+
+    # creation of containing folder for the uv venv
+    env_dir="$HOME/.venvs/$env_name"
+
+    if [[ -e "$env_dir" ]]; then
+        printf 'Error: environment already exists: %s\n' "$env_dir" >&2
+        printf '%s\n' \
+            'If this was created in error, carefully inspect its contents before deleting it.' \
+            'Do not remove environment directories unless you are sure they are no longer needed.' >&2
+        return 1
+    fi
+
+    if ! mkdir -p "$env_dir"; then
+        printf 'Error: failed to create %s\n' "$env_dir" >&2
+        return 1
+    fi
+
+    # setting uv environment variable to use the newly created venv folder
+    export UV_PROJECT_ENVIRONMENT="$env_dir"
+
+    # final messages
+    printf 'Created and selected %s\n' "$env_name"
+    printf 'UV_PROJECT_ENVIRONMENT=%s\n' "$UV_PROJECT_ENVIRONMENT"
+    printf '%s\n' \
+        'The environment directory has been created but is currently empty.' \
+	'No Python virtual environment exists there yet.' \
+	'Run an appropriate command such as "uv sync" to create and populate the virtual environment.'
+}
+
+uv-env-activate() {
+    if [[ -z "$UV_PROJECT_ENVIRONMENT" ]]; then
+        echo "UV_PROJECT_ENVIRONMENT is not set."
+        return 1
+    fi
+
+    if [[ ! -f "$UV_PROJECT_ENVIRONMENT/bin/activate" ]]; then
+        echo "No virtual environment found in:"
+        echo "  $UV_PROJECT_ENVIRONMENT"
+        echo
+        echo "Run 'uv sync' or 'uv venv' first."
+        return 1
+    fi
+
+    source "$UV_PROJECT_ENVIRONMENT/bin/activate"
+}
+
